@@ -3,12 +3,10 @@
 package main
 
 import (
-	"bytes"
 	"flag"
-	"io"
+	"fmt"
 	"log"
 	"net"
-	"sync"
 
 	"github.com/zaynjarvis/fyp/rpc/protocol"
 )
@@ -25,33 +23,41 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		var buff bytes.Buffer
-		written, err := io.CopyN(&buff, conn, protocol.CalcResponseLen)
-		if err != nil {
-			panic(err)
-		}
-		log.Printf("%v bytes received", written)
-		var res protocol.CalcResponse
-		if err := protocol.Unmarshal(buff.Bytes(), &res); err != nil {
-			panic(err)
-		}
-		log.Printf("%#v", res)
-	}()
-	data, err := protocol.Marshal(protocol.CalcRequest{Op: protocol.Operator(*op), A: *a, B: *b})
+
+	res, err := Call(conn, protocol.CalculatorMethod, &protocol.CalcRequest{Op: protocol.Operator(*op), A: *a, B: *b})
 	if err != nil {
 		panic(err)
+	}
+	fmt.Printf("%#v\n", res)
+	if err := conn.Close(); err != nil {
+		panic(err)
+	}
+}
+
+func Call(conn net.Conn, method protocol.Method, req interface{}) (interface{}, error) {
+	errCh := make(chan error)
+	resCh := make(chan interface{})
+	go func() {
+		res, err := protocol.ReadResponse(conn)
+		if err != nil {
+			errCh <- err
+			return
+		}
+		resCh <- res
+	}()
+	data, err := protocol.MethodMap[method].Marshal(req)
+	if err != nil {
+		return nil, err
 	}
 	written, err := conn.Write(data)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	log.Printf("%v bytes sent", written)
-	wg.Wait()
-	if err := conn.(io.WriteCloser).Close(); err != nil {
-		panic(err)
+	select {
+	case err := <-errCh:
+		return nil, err
+	case res := <-resCh:
+		return res, nil
 	}
 }

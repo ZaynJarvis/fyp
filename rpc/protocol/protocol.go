@@ -17,10 +17,37 @@ const (
 	NoMethod
 )
 
+type Method int64
+
 const (
+	Unkonwn Method = iota
+	CalculatorMethod
+)
+
+type Codec interface {
+	Marshal(c interface{}) ([]byte, error)
+	Unmarshal(b []byte, x interface{}) error
+	CreateRequest() interface{}
+	CreateResponse() interface{}
+}
+
+const (
+	HeaderLen       = 16
 	CalcRequestLen  = 24
 	CalcResponseLen = 16
 )
+
+var MethodMap = map[Method]Codec{
+	CalculatorMethod: Calculator{
+		RequestLen:  CalcResponseLen,
+		ResponseLen: CalcResponseLen,
+	},
+}
+
+type Header struct {
+	Method Method
+	Len    int64
+}
 
 type CalcRequest struct {
 	Op Operator
