@@ -1,14 +1,13 @@
 syntax = "proto3";
 
-option go_package = "github.com/zaynjarvis/fyp/registry/api";
+option go_package = "github.com/zaynjarvis/fyp/config/api";
 
-package registry.api;
+package config.api;
 
-message Service {
+message ServiceConfig {
   string name = 1;
-  string endpoint = 2;
-  uint32 weight = 3;
-  string health_check_path = 4;
+  uint32 version = 2;
+  bytes config = 3;
 }
 
 message Result {
@@ -16,7 +15,7 @@ message Result {
   string message = 2;
 }
 
-service Registry {
-  rpc Register(Service) returns (Result) {}
-  rpc Watch(Service) returns (stream Service) {}
+service ConfigCenter {
+  rpc Set(ServiceConfig) returns (Result) {}
+  rpc Watch(ServiceConfig) returns (stream ServiceConfig) {}
 }
