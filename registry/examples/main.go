@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/zaynjarvis/fyp/registry/api"
@@ -44,11 +45,19 @@ func main() {
 		}
 	} else {
 		rand.Seed(time.Now().UnixNano())
-		res, err := client.Register(ctx, &api.Service{Name: *name, Endpoint: fmt.Sprintf("localhost:%v", rand.Int()%65535)})
-		if err != nil {
-			log.Printf("client request register err: %v\n", err)
-			return
+		var wg sync.WaitGroup
+		for i := 0; i < 3; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				res, err := client.Register(ctx, &api.Service{Name: *name, Endpoint: fmt.Sprintf("localhost:%v", rand.Int()%65535)})
+				if err != nil {
+					log.Printf("client request register err: %v\n", err)
+					return
+				}
+				log.Printf("%s\n", res.String())
+			}()
 		}
-		log.Printf("%s\n", res.String())
+		wg.Wait()
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
 
 	"github.com/zaynjarvis/fyp/registry/api"
 	"google.golang.org/grpc"
@@ -32,24 +33,29 @@ func main() {
 type Watcher func(service *api.Service) error
 type Registry struct {
 	api.UnimplementedRegistryServer
-	svc      map[string][]*api.Service
-	watchers map[string][]Watcher
+	svc      sync.Map
+	watchers sync.Map
 }
 
 func (r *Registry) Register(ctx context.Context, service *api.Service) (*api.Result, error) {
 	if service == nil || service.Name == "" || service.Endpoint == "" {
 		return nil, errors.New("invalid request")
 	}
-	for _, svc := range r.svc[service.Name] {
+	svcI, _ := r.svc.LoadOrStore(service.Name, make([]*api.Service, 0, 1))
+	store := svcI.([]*api.Service)
+	for _, svc := range store {
 		if svc.Endpoint == service.Endpoint {
 			return nil, errors.New("duplicate endpoint update")
 		}
 	}
-	r.svc[service.Name] = append(r.svc[service.Name], service)
-	mappedW, ok := r.watchers[service.Name]
+	store = append(store, service)
+	r.svc.Store(service.Name, store)
+
+	mappedWI, ok := r.watchers.Load(service.Name)
 	if !ok {
 		return &api.Result{Status: 0, Message: "OK. no watcher"}, nil
 	}
+	mappedW := mappedWI.([]Watcher)
 	for _, w := range mappedW {
 		if err := w(service); err != nil {
 			log.Printf("service update not send, err: %v\n", err)
@@ -62,27 +68,30 @@ func (r *Registry) Watch(service *api.Service, stream api.Registry_WatchServer) 
 	if service == nil || service.Name == "" {
 		return errors.New("invalid request")
 	}
-	if _, ok := r.watchers[service.Name]; !ok {
-		r.watchers[service.Name] = make([]Watcher, 0, 1)
-	}
-	for _, svc := range r.svc[service.Name] {
-		if err := stream.Send(svc); err != nil {
-			return fmt.Errorf("initialize error, err: %w", err)
+	load, ok := r.svc.Load(service.Name)
+	if ok {
+		for _, svc := range load.([]*api.Service) {
+			if err := stream.Send(svc); err != nil {
+				return fmt.Errorf("initialize error, err: %w", err)
+			}
 		}
 	}
-	r.watchers[service.Name] = append(r.watchers[service.Name], func(service *api.Service) error {
+
+	loadWI, _ := r.watchers.LoadOrStore(service.Name, make([]Watcher, 0, 1))
+	loadW := loadWI.([]Watcher)
+	loadW = append(loadW, func(service *api.Service) error {
 		if err := stream.Send(service); err != nil {
 			return err
 		}
 		return nil
 	})
+	r.watchers.Store(service.Name, loadW)
+
 	<-stream.Context().Done()
+	r.watchers.LoadAndDelete(service.Name)
 	return nil
 }
 
 func New() api.RegistryServer {
-	return &Registry{
-		svc:      make(map[string][]*api.Service),
-		watchers: make(map[string][]Watcher),
-	}
+	return &Registry{}
 }
