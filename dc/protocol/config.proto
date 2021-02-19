@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+option go_package="github.com/zaynjarvis/fyp/dc/api";
+
+enum ContentType {
+    Any = 0;
+    Bytes = 1;
+    Text = 2;
+    Image = 3;
+    Video = 4;
+}
+
+// A rule engine will execute each rule in order.
+// each rule will find the field of the object/json/struct, do the serial conversions then execute op with an operand.
+// when rule is accepted (for example x.name > 10 == true) based on a sample rate rule engine will use a random guess
+// of whether the sample need to be collected
+message Rule {
+    enum Op {
+        noop = 0;
+        // check not null
+        exist = 1;
+        // comparable operations
+        lt = 5;
+        eq = 6;
+        gt = 7;
+        // string operations
+        ct = 11;
+    }
+    enum Conversion {
+        String = 0;
+        Int = 1;
+        Double = 2;
+        // reserve some for data type conversion
+        Len = 11;
+    }
+    string field = 1;
+    repeated Conversion conversion = 2;
+    Op op = 3;
+    string operand = 4;
+    // [0,1] sample rate, control the amount of data being collected.
+    double sample_rate = 5;
+}
+
+// Requires hot reload when collection config is received.
+// This is a good reason to use service agent, we want collection agent to restart, but not the service itself.
+// It's okay to lose some data which should be collected, but it's not okay to influence the service
+message CollectionConfig {
+    // service version can be used to ensure the compatibility
+    string version = 1;
+    // reserve 2 - 10 for service header
+
+    // identify service by name, each service will recognize itself with a name.
+    // In this way, in a decoupled message queue without topic can still filter out service own configuration.
+    // or it can be used to identify the sub-service of a service, for example face recognition service in a monitoring
+    // platform.
+    string service = 11;
+    // content type is a constraint that to be used as a hint, not necessary.
+    repeated ContentType type = 12;
+
+    // storage config
+    string object_storage_path = 15;
+    //
+    string document_storage_path = 16;
+    // it's totally okay not to use text index, so it can be empty
+    string text_index_path = 17;
+
+    // can stop collection by deleting all rules or set those sample_rate to be zero.
+    repeated Rule rules = 20;
+
+    // can be used for extensions. Use extension's serialization methods.
+    bytes extra = 30;
+}
