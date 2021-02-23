@@ -70,3 +70,50 @@ message CollectionConfig {
     // can be used for extensions. Use extension's serialization methods.
     bytes extra = 30;
 }
+
+message CloudInfo {
+    // cloud server id, service agent can choose to ignore
+    string id = 1;
+    string url = 2;
+}
+
+message AgentInfo {
+    string id = 1;
+    string service = 2;
+    string address = 3;
+}
+
+message Result {
+    int32 code = 1;
+    string message = 2;
+}
+
+message CollectionEvent {
+    ContentType type = 1;
+    string url = 2;
+    string message = 3;
+    bytes extra = 11;
+}
+
+// RPC-wise, both pull and push model are not for high concurrency scenario due to the constraint on file handlers and
+// HTTP connection. (since both require long connection, otherwise there will be delay issue).
+// However, the combination of Cloud push config + agent push event model is okay, but still not suitable for high
+// concurrency.
+// In the case of many agents, like city security camera, using light-weight message queue like mqtt will be better.
+
+// use pull model by assumption that config changes will be less frequent than collection notification
+// here, open an HTTP2 long connection will be more efficient than client setting up short term TCP connections.
+// pull model allow cloud to enable active health check, while need to setup registry for service discovery.
+service CloudPullService {
+    rpc SendConfig(CollectionConfig) returns (Result) { }
+    rpc HealthCheck(CloudInfo) returns (Result) { }
+    rpc Listen(CloudInfo) returns (stream CollectionEvent) { }
+}
+
+// use push model so registry for sd is not needed.
+// but push model introduce a tradeoff between a unnecessary long connection (ListenConfig) and delay on polling
+service AgentPushService {
+    rpc ListenConfig(AgentInfo) returns (stream CollectionConfig) { }
+    rpc GetConfig(AgentInfo) returns (CollectionConfig) { }
+    rpc SendNotification(stream CollectionEvent) returns (Result) { }
+}

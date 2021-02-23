@@ -1,4 +1,4 @@
 .PHONY: protoc
 
 protoc:
-	./protocol/protocgen.sh
+	@./protocol/protocgen.sh > /dev/null
