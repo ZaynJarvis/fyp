@@ -3,8 +3,8 @@ package transport
 import (
 	"context"
 	"io"
-	"log"
 
+	"github.com/sirupsen/logrus"
 	"github.com/zaynjarvis/fyp/dc/api"
 	"google.golang.org/grpc"
 )
@@ -30,7 +30,7 @@ func newPushModel(addr string, info *api.AgentInfo) *PushModel {
 func (p *PushModel) Start() {
 	conn, err := grpc.Dial(p.cloudAddr, grpc.WithInsecure())
 	if err != nil {
-		log.Fatal("failed to start server err: ", err)
+		logrus.Fatal("failed to start server err: ", err)
 	}
 	defer conn.Close()
 	c := api.NewAgentPushServiceClient(conn)
@@ -39,7 +39,7 @@ func (p *PushModel) Start() {
 	go func() {
 		stream, err := c.ListenConfig(ctx, p.info)
 		if err != nil {
-			log.Fatal("cannot listen config, err: ", err)
+			logrus.Fatal("cannot listen config, err: ", err)
 		}
 		for {
 			select {
@@ -51,7 +51,7 @@ func (p *PushModel) Start() {
 			if err == io.EOF {
 				return
 			} else if err != nil {
-				log.Println("receive error on stream receive, err: ", err)
+				logrus.Error("receive error on stream receive, err: ", err)
 			}
 			p.configCh <- config
 		}
@@ -60,12 +60,12 @@ func (p *PushModel) Start() {
 	go func() {
 		notification, err := c.SendNotification(ctx)
 		if err != nil {
-			log.Println("setup send notification err: ", err)
+			logrus.Error("setup send notification err: ", err)
 			return
 		}
 		for event := range p.eventCh {
 			if err := notification.Send(event); err != nil {
-				log.Println("sending notification err: ", err)
+				logrus.Error("sending notification err: ", err)
 			}
 		}
 	}()

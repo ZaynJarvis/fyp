@@ -1,8 +1,9 @@
 package main
 
 import (
-	"log"
 	"os"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/zaynjarvis/fyp/dc/api"
 
@@ -14,7 +15,7 @@ func main() {
 	go t.Start()
 	go func() {
 		for cfg := range t.RecvConfig() {
-			log.Printf("%s", cfg.String())
+			logrus.Info(cfg)
 		}
 	}()
 	t.SendNotification(&api.CollectionEvent{

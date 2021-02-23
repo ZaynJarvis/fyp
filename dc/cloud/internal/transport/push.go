@@ -3,9 +3,10 @@ package transport
 import (
 	"context"
 	"errors"
-	"log"
 	"net"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/zaynjarvis/fyp/dc/api"
 	"google.golang.org/grpc"
@@ -28,7 +29,7 @@ func (s *server) ListenConfig(agentInfo *api.AgentInfo, stream api.AgentPushServ
 	cfgCh := stored.(chan *api.CollectionConfig)
 	if s.retainedCfg != nil {
 		if err := stream.Send(s.retainedCfg); err != nil {
-			log.Println("stream send config error: ", err)
+			logrus.Error("stream send config error: ", err)
 		}
 	}
 	for {
@@ -38,11 +39,11 @@ func (s *server) ListenConfig(agentInfo *api.AgentInfo, stream api.AgentPushServ
 			return errors.New("stream context is closed")
 		case cfg, ok := <-cfgCh:
 			if !ok {
-				log.Println("config channel is closed")
+				logrus.Info("config channel is closed")
 				return errors.New("config channel is closed by the cloud")
 			}
 			if err := stream.Send(cfg); err != nil {
-				log.Println("stream send config error: ", err)
+				logrus.Error("stream send config error: ", err)
 			}
 		}
 	}
@@ -61,8 +62,10 @@ func (s *server) SendNotification(stream api.AgentPushService_SendNotificationSe
 		default:
 		}
 		recv, err := stream.Recv()
-		if err != nil {
-			log.Println(err.Error())
+		if err == context.Canceled {
+			logrus.Debug("agent left")
+		} else if err != nil {
+			logrus.Info("stream recv error: ", err.Error())
 			continue
 		}
 		s.notyCh <- recv
@@ -100,7 +103,7 @@ func newPushModel(port string) *PushModel {
 func (p PushModel) Start() {
 	lis, err := net.Listen("tcp", p.port)
 	if err != nil {
-		log.Fatal("cannot listen on port, err: ", err)
+		logrus.Fatal("cannot listen on port, err: ", err)
 	}
 	s := grpc.NewServer()
 	api.RegisterAgentPushServiceServer(s, p.svr)
@@ -109,7 +112,7 @@ func (p PushModel) Start() {
 		s.GracefulStop()
 	}()
 	if err := s.Serve(lis); err != nil {
-		log.Println(err)
+		logrus.Fatal(err)
 	}
 }
 
