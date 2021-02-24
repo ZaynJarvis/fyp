@@ -48,7 +48,11 @@ func (p *PushModel) Start() {
 			default:
 			}
 			config, err := stream.Recv()
-			if err == io.EOF {
+			if err == context.Canceled {
+				logrus.Debug("the cloud left")
+				return
+			} else if err == io.EOF {
+				logrus.Debug("the cloud done")
 				return
 			} else if err != nil {
 				logrus.Error("receive error on stream receive, err: ", err)

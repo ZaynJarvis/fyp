@@ -117,3 +117,20 @@ service AgentPushService {
     rpc GetConfig(AgentInfo) returns (CollectionConfig) { }
     rpc SendNotification(stream CollectionEvent) returns (Result) { }
 }
+
+message Tag {
+    string key = 1;
+    string val = 2;
+}
+
+message ImageReport {
+    bytes img = 1;
+    bytes result = 2;
+    repeated Tag tags = 3;
+    // text is used specifically for text indexing
+    string text = 4;
+}
+
+service Local {
+    rpc Image(stream ImageReport) returns (Result) {}
+}

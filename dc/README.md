@@ -1,6 +1,6 @@
 # Data Collection System
 ## Introduction
-This system aims at providing a common service which allows user to collect data from production environment. This allows users to quickly identify issues of the existing models caused by unexpected production environment. For example a face recognition service in production env might be affected my light, and a signal prediction system might be affected by noise. A data collection at production end can efficiently and automatically collect useful data for retrain.
+This system aims at providing a common service which allows user to collect data from production environment. This allows users to quickly identify issues of the existing models caused by unexpected production environment. For example a face recognition service in production env might be affected by light, and a signal prediction system might be affected by noise. A data collection at production end can efficiently and automatically collect useful data for retrain.
 
 In addition, the data collection system does not conflict with iterative training but collaborate with it to provide faster iteration and issue identification.
 ## Design

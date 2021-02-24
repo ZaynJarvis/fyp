@@ -3,6 +3,7 @@ package transport
 import (
 	"context"
 	"errors"
+	"io"
 	"net"
 	"sync"
 
@@ -63,10 +64,13 @@ func (s *server) SendNotification(stream api.AgentPushService_SendNotificationSe
 		}
 		recv, err := stream.Recv()
 		if err == context.Canceled {
-			logrus.Debug("agent left")
+			logrus.Debug("client left")
+			return nil
+		} else if err == io.EOF {
+			logrus.Debug("client done")
+			return nil
 		} else if err != nil {
-			logrus.Info("stream recv error: ", err.Error())
-			continue
+			return err
 		}
 		s.notyCh <- recv
 	}

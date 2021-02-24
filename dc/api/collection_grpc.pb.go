@@ -197,7 +197,7 @@ var CloudPullService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "config.proto",
+	Metadata: "collection.proto",
 }
 
 // AgentPushServiceClient is the client API for AgentPushService service.
@@ -417,5 +417,125 @@ var AgentPushService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "config.proto",
+	Metadata: "collection.proto",
+}
+
+// LocalClient is the client API for Local service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type LocalClient interface {
+	Image(ctx context.Context, opts ...grpc.CallOption) (Local_ImageClient, error)
+}
+
+type localClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewLocalClient(cc grpc.ClientConnInterface) LocalClient {
+	return &localClient{cc}
+}
+
+func (c *localClient) Image(ctx context.Context, opts ...grpc.CallOption) (Local_ImageClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Local_ServiceDesc.Streams[0], "/Local/Image", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &localImageClient{stream}
+	return x, nil
+}
+
+type Local_ImageClient interface {
+	Send(*ImageReport) error
+	CloseAndRecv() (*Result, error)
+	grpc.ClientStream
+}
+
+type localImageClient struct {
+	grpc.ClientStream
+}
+
+func (x *localImageClient) Send(m *ImageReport) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *localImageClient) CloseAndRecv() (*Result, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Result)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// LocalServer is the server API for Local service.
+// All implementations must embed UnimplementedLocalServer
+// for forward compatibility
+type LocalServer interface {
+	Image(Local_ImageServer) error
+	mustEmbedUnimplementedLocalServer()
+}
+
+// UnimplementedLocalServer must be embedded to have forward compatible implementations.
+type UnimplementedLocalServer struct {
+}
+
+func (UnimplementedLocalServer) Image(Local_ImageServer) error {
+	return status.Errorf(codes.Unimplemented, "method Image not implemented")
+}
+func (UnimplementedLocalServer) mustEmbedUnimplementedLocalServer() {}
+
+// UnsafeLocalServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to LocalServer will
+// result in compilation errors.
+type UnsafeLocalServer interface {
+	mustEmbedUnimplementedLocalServer()
+}
+
+func RegisterLocalServer(s grpc.ServiceRegistrar, srv LocalServer) {
+	s.RegisterService(&Local_ServiceDesc, srv)
+}
+
+func _Local_Image_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(LocalServer).Image(&localImageServer{stream})
+}
+
+type Local_ImageServer interface {
+	SendAndClose(*Result) error
+	Recv() (*ImageReport, error)
+	grpc.ServerStream
+}
+
+type localImageServer struct {
+	grpc.ServerStream
+}
+
+func (x *localImageServer) SendAndClose(m *Result) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *localImageServer) Recv() (*ImageReport, error) {
+	m := new(ImageReport)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// Local_ServiceDesc is the grpc.ServiceDesc for Local service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Local_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "Local",
+	HandlerType: (*LocalServer)(nil),
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Image",
+			Handler:       _Local_Image_Handler,
+			ClientStreams: true,
+		},
+	},
+	Metadata: "collection.proto",
 }
