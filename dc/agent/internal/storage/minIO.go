@@ -22,7 +22,7 @@ type MinIO struct {
 
 func newMinIO(addr string) (*MinIO, error) {
 	s3Client, err := minio.New(addr, &minio.Options{
-		Creds: credentials.NewStaticV4("Q3AM3UQ867SPQQA43P2F", "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG", ""),
+		Creds: credentials.NewStaticV4("liuz0063", "12345678", ""),
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -40,7 +40,7 @@ func newMinIO(addr string) (*MinIO, error) {
 func (m *MinIO) Close() {
 }
 
-func (m *MinIO) Image(id, contentType string, data []byte) error {
+func (m *MinIO) Image(id string, data []byte) error {
 	fn := path.Join(m.root, id)
 	if _, err := os.Stat(id); os.IsExist(err) {
 		return errors.New("file exists")
@@ -61,9 +61,7 @@ func (m *MinIO) Image(id, contentType string, data []byte) error {
 		}
 	}
 
-	if _, err := m.FPutObject(ctx, bucket, id, fn, minio.PutObjectOptions{
-		ContentType: contentType,
-	}); err != nil {
+	if _, err := m.FPutObject(ctx, bucket, id, fn, minio.PutObjectOptions{}); err != nil {
 		return errors.New("file upload to cloud storage failed")
 	}
 	logrus.Debug("Successfully uploaded")

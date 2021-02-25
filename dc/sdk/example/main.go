@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io/ioutil"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -14,14 +15,19 @@ type Result struct {
 
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
-	s := sdk.New("localhost:9000", "example", sdk.WithTag("mode", "test"))
+	s := sdk.New("localhost:8000", "example", sdk.WithTag("mode", "test"))
 	go func() {
 		if err := s.Connect(context.Background()); err != nil {
 			logrus.Error("example failed, err: ", err)
 		}
 	}()
-	s.Image([]byte("img"), map[string]float64{"confidence": 0.8}, sdk.Tag{K: "imageID", V: "001"})
+	img, err := ioutil.ReadFile("./test/assets/img.png")
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
+	s.Image("a.png", img, map[string]float64{"confidence": 0.8}, sdk.Tag{K: "extra", V: "001"})
 	time.Sleep(time.Millisecond)
-	s.Image([]byte("img"), Result{Conf: 0.99}, sdk.Tag{K: "imageID", V: "002"})
+	s.Image("xyzw.png", img, Result{Conf: 0.99}, sdk.Tag{K: "extra", V: "002"})
 	select {}
 }

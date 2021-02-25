@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/zaynjarvis/fyp/dc/api"
@@ -59,7 +60,7 @@ func (s *Server) Image(stream api.Local_ImageServer) error {
 		}
 		select {
 		case s.imgCh <- rpt:
-		default:
+		case <-time.After(time.Millisecond):
 			logrus.Debug("image report channel full")
 		}
 	}

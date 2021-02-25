@@ -1,0 +1,13 @@
+{
+  "name": "webserver",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Zayn Jarvis",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "mongodb": "^3.6.4"
+  }
+}

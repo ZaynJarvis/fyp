@@ -1,10 +1,8 @@
 package storage
 
 import (
-	"encoding/json"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"gopkg.in/mgo.v2"
 )
 
@@ -16,6 +14,7 @@ type MongoDB struct {
 type Images struct {
 	ID        string      `json:"id" bson:"id"`
 	Result    interface{} `json:"result" bson:"result"`
+	Text      string      `json:"text" bson:"text"`
 	CreatedAt time.Time   `json:"created_at" bson:"created_at"`
 }
 
@@ -36,14 +35,14 @@ func (m *MongoDB) Close() {
 	m.session.Close()
 }
 
-func (m *MongoDB) Data(id string, res []byte) error {
-	var result map[string]interface{}
-	if err := json.Unmarshal(res, &result); err != nil {
-		logrus.Error("unmarshal result failed, res: ", string(res))
-	}
+func (m *MongoDB) Doc(id string, res interface{}) error {
+	mres := res.(map[string]interface{})
+	text := mres["text"]
+	delete(mres, "text")
 	if err := m.images.Insert(&Images{
 		ID:        id,
-		Result:    result,
+		Result:    res,
+		Text:      text.(string),
 		CreatedAt: time.Now(),
 	}); err != nil {
 		return err

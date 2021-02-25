@@ -129,8 +129,6 @@ message ImageReport {
     ContentType type = 2;
     bytes img = 6;
     bytes result = 11;
-    // text is used specifically for text indexing
-    string text = 12;
     repeated Tag tags = 21;
 }
 

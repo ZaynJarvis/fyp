@@ -21,6 +21,10 @@ type Processor struct {
 	st    storage.Storage
 }
 
+//s := storage.New(storage.Config{
+//	ObjStoreAddr:  "localhost:9000",
+//	DocStorageAddr: "localhost:27017",
+//})
 func New(imgCh chan *api.ImageReport, cloud transport.CollectionService) *Processor {
 	return &Processor{
 		imgCh: imgCh,
@@ -36,12 +40,16 @@ func (p *Processor) Execute() {
 			logrus.Debug("no configured rules, skip")
 			continue
 		}
-		p.execute(img)
+		go p.execute(img)
 	}
 }
 
 func (p *Processor) execute(img *api.ImageReport) {
 	// [keep buffer]
+	if img.Id == "" {
+		logrus.Error("invalid ID")
+		return
+	}
 	var res map[string]interface{}
 	if err := json.Unmarshal(img.GetResult(), &res); err != nil {
 		logrus.Error("unmarshal err: ", err)
@@ -51,18 +59,11 @@ func (p *Processor) execute(img *api.ImageReport) {
 		return
 	}
 
-	switch img.Type {
-	case api.ContentType_Image_PNG:
-		if err := p.st.Image(img.Id, "image/png", img.GetImg()); err != nil {
-			logrus.Error(err)
-		}
-	case api.ContentType_Image_JPEG:
-		if err := p.st.Image(img.Id, "image/jpeg", img.GetImg()); err != nil {
-			logrus.Error(err)
-		}
+	if err := p.st.Image(img.Id, img.GetImg()); err != nil {
+		logrus.Error(err)
 	}
 
-	if err := p.st.Data(img.Id, res); err != nil {
+	if err := p.st.Doc(img.Id, res); err != nil {
 		logrus.Error(err)
 	}
 
@@ -82,12 +83,12 @@ Loop:
 		f := res[rule.Field].(float64)
 		switch rule.Op {
 		case api.Rule_lt:
-			logrus.Info("hit")
 			operand, err := strconv.ParseFloat(rule.Operand, 64)
 			if err != nil {
 				logrus.Error(err)
 			}
 			if f < operand && rand.Float64() < rule.SampleRate {
+				res["text"] = "collected because of the rule [" + rule.String() + "]"
 				valid = true
 				break Loop
 			}
@@ -109,10 +110,11 @@ func (p *Processor) updateCfg() {
 		// TODO: add rate limiter
 		p.mu.Lock()
 		p.cfg = cfg
+		logrus.Info("received config: ", cfg)
 		p.st.UpdateConfig(storage.Config{
-			ObjStoreAddr:  cfg.ObjectStoragePath,
-			DataStoreAddr: cfg.DocumentStoragePath,
-			TextIndexAddr: cfg.TextIndexPath,
+			ObjStoreAddr:   cfg.ObjectStoragePath,
+			DocStorageAddr: cfg.DocumentStoragePath,
+			TextIndexAddr:  cfg.TextIndexPath,
 		})
 		p.mu.Unlock()
 	}

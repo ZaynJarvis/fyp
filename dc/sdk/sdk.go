@@ -71,7 +71,7 @@ func (c *CollectionSDK) Connect(ctx context.Context) error {
 }
 
 // based on collection config, determine whether the image should be stored
-func (c *CollectionSDK) Image(img []byte, result interface{}, tags ...Tag) {
+func (c *CollectionSDK) Image(id string, img []byte, result interface{}, tags ...Tag) {
 	data, err := json.Marshal(result)
 	if err != nil {
 		logrus.Debug("marshal failed, err: ", err)
@@ -84,5 +84,5 @@ func (c *CollectionSDK) Image(img []byte, result interface{}, tags ...Tag) {
 			Val: t.V,
 		})
 	}
-	c.imgCh <- &api.ImageReport{Img: img, Result: data, Tags: ts}
+	c.imgCh <- &api.ImageReport{Id: id, Img: img, Result: data, Tags: ts}
 }
