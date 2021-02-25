@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/zaynjarvis/fyp/dc/agent/internal/storage"
+
 	"github.com/sirupsen/logrus"
 	"github.com/zaynjarvis/fyp/dc/agent/internal/transport"
 	"github.com/zaynjarvis/fyp/dc/api"
@@ -16,12 +18,14 @@ type Processor struct {
 	imgCh chan *api.ImageReport
 	cfg   *api.CollectionConfig
 	cloud transport.CollectionService
+	st    storage.Storage
 }
 
 func New(imgCh chan *api.ImageReport, cloud transport.CollectionService) *Processor {
 	return &Processor{
 		imgCh: imgCh,
 		cloud: cloud,
+		st:    storage.New(storage.Config{}),
 	}
 }
 
@@ -43,20 +47,29 @@ func (p *Processor) execute(img *api.ImageReport) {
 		logrus.Error("unmarshal err: ", err)
 		return
 	}
-	// add sample rate
 	if !p.execRuleEngine(res) {
 		return
 	}
-	logrus.Info(img)
-	// object storage
 
-	// mongoDB
+	switch img.Type {
+	case api.ContentType_Image_PNG:
+		if err := p.st.Image(img.Id, "image/png", img.GetImg()); err != nil {
+			logrus.Error(err)
+		}
+	case api.ContentType_Image_JPEG:
+		if err := p.st.Image(img.Id, "image/jpeg", img.GetImg()); err != nil {
+			logrus.Error(err)
+		}
+	}
 
-	// text indexing
+	if err := p.st.Data(img.Id, res); err != nil {
+		logrus.Error(err)
+	}
 
-	// decide whether to notify
+	// TODO: text indexing
+
 	p.cloud.SendNotification(&api.CollectionEvent{
-		Type:    api.ContentType_Image,
+		Type:    img.Type,
 		Message: "OK",
 	})
 }
@@ -93,8 +106,14 @@ func (p *Processor) getCfg() *api.CollectionConfig {
 
 func (p *Processor) updateCfg() {
 	for cfg := range p.cloud.RecvConfig() {
+		// TODO: add rate limiter
 		p.mu.Lock()
 		p.cfg = cfg
+		p.st.UpdateConfig(storage.Config{
+			ObjStoreAddr:  cfg.ObjectStoragePath,
+			DataStoreAddr: cfg.DocumentStoragePath,
+			TextIndexAddr: cfg.TextIndexPath,
+		})
 		p.mu.Unlock()
 	}
 }

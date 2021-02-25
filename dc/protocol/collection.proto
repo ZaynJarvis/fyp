@@ -6,8 +6,9 @@ enum ContentType {
     Any = 0;
     Bytes = 1;
     Text = 2;
-    Image = 3;
-    Video = 4;
+    Image_JPEG = 11;
+    Image_PNG = 12;
+    Video = 21;
 }
 
 // A rule engine will execute each rule in order.
@@ -124,11 +125,13 @@ message Tag {
 }
 
 message ImageReport {
-    bytes img = 1;
-    bytes result = 2;
-    repeated Tag tags = 3;
+    string id = 1;
+    ContentType type = 2;
+    bytes img = 6;
+    bytes result = 11;
     // text is used specifically for text indexing
-    string text = 4;
+    string text = 12;
+    repeated Tag tags = 21;
 }
 
 service Local {
