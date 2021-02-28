@@ -98,7 +98,7 @@ func (c *ComposedStorage) updateObj(addr string) {
 }
 
 func (c *ComposedStorage) updateData(addr string) {
-	if addr == c.cfg.ObjStoreAddr {
+	if addr == c.cfg.DocStorageAddr {
 		return
 	}
 	if c.data != nil {

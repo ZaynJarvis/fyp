@@ -20,6 +20,7 @@ message Rule {
         noop = 0;
         // check not null
         exist = 1;
+        not_exist = 2;
         // comparable operations
         lt = 5;
         eq = 6;

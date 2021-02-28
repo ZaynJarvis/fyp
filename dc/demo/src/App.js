@@ -50,7 +50,7 @@ const App = () => {
       bodyFormData.append("image", blob);
       axios({
         method: "post",
-        url: "http://0.0.0.0:8989",
+        url: "http://0.0.0.0:8000",
         data: bodyFormData,
         headers: { "Content-Type": "multipart/form-data" },
       }).then((res) => {

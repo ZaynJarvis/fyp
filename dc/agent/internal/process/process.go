@@ -45,7 +45,7 @@ func (p *Processor) Execute() {
 }
 
 func (p *Processor) execute(img *api.ImageReport) {
-	// [keep buffer]
+	// can have keep buffer
 	if img.Id == "" {
 		logrus.Error("invalid ID")
 		return
@@ -76,25 +76,42 @@ func (p *Processor) execute(img *api.ImageReport) {
 }
 
 func (p *Processor) execRuleEngine(res map[string]interface{}) bool {
+	logrus.Debugf("exec rule on result: %s", res)
 	rules := p.getCfg().Rules
 	valid := false
+	collectedRule := "unknown"
 Loop:
 	for _, rule := range rules {
-		f := res[rule.Field].(float64)
 		switch rule.Op {
+		case api.Rule_exist:
+			if f := res[rule.Field]; f != nil && rand.Float64() < rule.SampleRate {
+				collectedRule = rule.String()
+				valid = true
+				break Loop
+			}
+		case api.Rule_not_exist:
+			if f := res[rule.Field]; f == nil && rand.Float64() < rule.SampleRate {
+				collectedRule = rule.String()
+				valid = true
+				break Loop
+			}
 		case api.Rule_lt:
+			f := res[rule.Field].(float64)
 			operand, err := strconv.ParseFloat(rule.Operand, 64)
 			if err != nil {
 				logrus.Error(err)
 			}
 			if f < operand && rand.Float64() < rule.SampleRate {
-				res["text"] = "collected because of the rule [" + rule.String() + "]"
+				collectedRule = rule.String()
 				valid = true
 				break Loop
 			}
 		default:
 			logrus.Error("unknown op: ", rule.Op)
 		}
+	}
+	if valid {
+		res["text"] = "collected because of the rule [" + collectedRule + "]"
 	}
 	return valid
 }
@@ -107,15 +124,16 @@ func (p *Processor) getCfg() *api.CollectionConfig {
 
 func (p *Processor) updateCfg() {
 	for cfg := range p.cloud.RecvConfig() {
-		// TODO: add rate limiter
+		// should add rate r
 		p.mu.Lock()
 		p.cfg = cfg
-		logrus.Info("received config: ", cfg)
+		logrus.Debug("received config: ", cfg)
 		p.st.UpdateConfig(storage.Config{
 			ObjStoreAddr:   cfg.ObjectStoragePath,
 			DocStorageAddr: cfg.DocumentStoragePath,
 			TextIndexAddr:  cfg.TextIndexPath,
 		})
+		logrus.Info("storage update config completed")
 		p.mu.Unlock()
 	}
 }
