@@ -2,6 +2,8 @@ import './App.css';
 import React from "react";
 import Webcam from "react-webcam";
 import axios from 'axios';
+import { ReactComponent as Camera } from "./camera.svg";
+import Collapse from 'react-smooth-collapse';
 
 const videoConstraints = {
   width: 1280,
@@ -60,35 +62,55 @@ const App = () => {
     [webcamRef]
   );
 
+  React.useEffect(() => {
+    window.addEventListener('keyup', capture);
+    return () => {
+      window.removeEventListener('keyup', capture);
+    };
+  }, [capture]);
+
   return (
-    <>
-      <Webcam
-        audio={false}
-        width={640}
-        height={360}
-        ref={webcamRef}
-        screenshotFormat="image/jpeg"
-        videoConstraints={videoConstraints}
-        mirrored={true}
-      />
-      <button style={{
-        position: 'fixed',
-        top: '1rem',
-        left: '1rem',
-        borderRadius: '3px',
-        fontSize: '2rem',
-      }} onClick={capture}>Capture</button>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(5, 1fr)',
-      }}>
-        {res.map((r, i) => (<div key={i}>
-          <img style={{ height: '180px', width: '320px' }} src={r.src} alt="img" />
-          <pre>{JSON.stringify(r.data, "", "  ")}</pre>
-        </div>))}
+    <main>
+      <div className='camera-container'>
+        <Webcam
+          audio={false}
+          width={1280}
+          height={720}
+          ref={webcamRef}
+          screenshotFormat="image/jpeg"
+          videoConstraints={videoConstraints}
+          mirrored={true}
+        />
+        <button className='button' onClick={capture}><Camera style={{
+          height: '100%',
+          width: '100%',
+          fill: '#666',
+        }} /></button>
       </div>
-    </>
+      <div className='showroom'>
+        {res.map((r, i) => <Pic key={i} src={r.src} data={r.data} />)}
+      </div>
+    </main>
   );
 };
+
+const Pic = ({ key, src, data }) => {
+  const [open, change] = React.useState(false);
+
+  return (
+    <div key={key} >
+      <img src={src} alt="img"
+        style={data.length === 0 ?
+          { background: '#d337' } :
+          { background: '#9d67' }}
+        onClick={() => {
+          change((open) => !open);
+        }} />
+      <Collapse expanded={open}>
+        <pre>{JSON.stringify(data, "", "  ")}</pre>
+      </Collapse>
+    </div>
+  )
+}
 
 export default App;
