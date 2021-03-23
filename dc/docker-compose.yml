@@ -1,0 +1,65 @@
+version: "3.9"
+services:
+  mongo:
+    image: "mongo"
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongo:/data/db
+    environment:
+      - MONGO_DATA_DIR=/data/db
+  minio:
+    image: "minio/minio"
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./data/minio:/data
+    environment:
+        MINIO_ACCESS_KEY: liuz0063
+        MINIO_SECRET_KEY: 12345678
+    command: server /data
+  cloud:
+      image: "cloud"
+      ports:
+        - "7890:7890" # agent conn
+        - "8900:8900" # rest api
+  agent:
+      image: "agent"
+      ports:
+        - "7000:7000"
+      depends_on:
+        - mongo
+        - minio
+        - cloud
+      command: /app/agent 1
+  fr:
+      image: "fr"
+      ports:
+        - "8000:8000"
+      volumes:
+        - ./demo/backend:/root/face_recognition/backend
+      depends_on:
+        - agent
+  demo:
+      image: "demo"
+      ports:
+        - "8888:80"
+      depends_on:
+        - fr
+  webserver:
+      image: "websvr"
+      ports:
+        - "3000:3000"
+      depends_on:
+        - mongo
+      links:
+        - mongo
+      restart: always
+#  webui:
+#      image: "webui"
+#      ports:
+#        - "8080:8080"
+#      depends_on:
+#        - minio
+#        - webserver
+

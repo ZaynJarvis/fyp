@@ -9,7 +9,7 @@ from sdk import SDK
 
 app = Flask(__name__)
 CORS(app)
-collector = SDK("host.docker.internal:7000")
+collector = SDK("agent:7000")
 
 @app.route('/', methods=['POST'])
 def root():
@@ -28,10 +28,14 @@ def root():
     image = Image.fromarray(imgArr)
     imgByteArr = io.BytesIO()
     image.save(imgByteArr, format='JPEG')
-    
+
+    face = {}
+    if len(face_landmarks_list) != 0:
+        face = face_landmarks_list[0]
+        face["off_center"] = abs(face["nose_tip"][0][0] - 640) / 1280 + abs(face["nose_tip"][0][1] - 360) / 720
     collector.Image(
         now.strftime("%H:%M:%S.%f.jpeg"),
         imgByteArr.getvalue(),
-        {} if len(face_landmarks_list) == 0 else face_landmarks_list[0]
+        face
     )
-    return jsonify(face_landmarks_list)
+    return jsonify(face)

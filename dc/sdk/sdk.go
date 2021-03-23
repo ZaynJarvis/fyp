@@ -84,5 +84,8 @@ func (c *CollectionSDK) Image(id string, img []byte, result interface{}, tags ..
 			Val: t.V,
 		})
 	}
-	c.imgCh <- &api.ImageReport{Id: id, Img: img, Result: data, Tags: ts}
+	select {
+	case c.imgCh <- &api.ImageReport{Id: id, Img: img, Result: data, Tags: ts}:
+	default:
+	}
 }

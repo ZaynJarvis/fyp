@@ -13,7 +13,7 @@ import (
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
 
-	t := transport.New(":7890", &api.AgentInfo{Id: os.Args[1], Service: "test"}, true)
+	t := transport.New("cloud:7890", &api.AgentInfo{Id: os.Args[1], Service: "test"}, true)
 	go t.Start()
 	s := server.New(":7000")
 	go s.Start()

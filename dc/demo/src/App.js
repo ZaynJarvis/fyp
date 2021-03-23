@@ -52,7 +52,7 @@ const App = () => {
       bodyFormData.append("image", blob);
       axios({
         method: "post",
-        url: "http://0.0.0.0:8000",
+        url: "http://localhost:8000",
         data: bodyFormData,
         headers: { "Content-Type": "multipart/form-data" },
       }).then((res) => {
@@ -100,7 +100,7 @@ const Pic = ({ key, src, data }) => {
   return (
     <div key={key} >
       <img src={src} alt="img"
-        style={data.length === 0 ?
+        style={ Object.keys(data).length === 0 ?
           { background: '#d337' } :
           { background: '#9d67' }}
         onClick={() => {

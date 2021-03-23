@@ -1,3 +1,3 @@
 #start server
 
-docker run -p 8989:8000 fr
+docker run -p 8000:8000 fr

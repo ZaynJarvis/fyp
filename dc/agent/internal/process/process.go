@@ -106,8 +106,19 @@ Loop:
 				valid = true
 				break Loop
 			}
+		case api.Rule_gt:
+			f := res[rule.Field].(float64)
+			operand, err := strconv.ParseFloat(rule.Operand, 64)
+			if err != nil {
+				logrus.Error(err)
+			}
+			if f > operand && rand.Float64() < rule.SampleRate {
+				collectedRule = rule.String()
+				valid = true
+				break Loop
+			}
 		default:
-			logrus.Error("unknown op: ", rule.Op)
+			logrus.Error("no support to op: ", rule.Op)
 		}
 	}
 	if valid {

@@ -73,7 +73,7 @@ var exports = {
     },
     proxy: {
       '/minio/webrpc': {
-        target: 'http://localhost:9000',
+        target: 'http://localhost:9000', // should update to minio in docker-compose
         secure: false,
         headers: {'Host': "localhost:9000"}
       },
