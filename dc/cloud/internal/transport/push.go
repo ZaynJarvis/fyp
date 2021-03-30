@@ -17,7 +17,7 @@ import (
 type server struct {
 	mtx sync.Mutex
 	api.UnimplementedAgentPushServiceServer
-	retainedCfg *api.CollectionConfig
+	retainedCfg map[string]*api.CollectionConfig
 	notyCh      chan *api.CollectionEvent
 	agents      sync.Map // map[string]chan api.CollectionConfig
 }
@@ -28,8 +28,9 @@ func (s *server) ListenConfig(agentInfo *api.AgentInfo, stream api.AgentPushServ
 		return errors.New("agent with id " + agentInfo.Id + " already exists")
 	}
 	cfgCh := stored.(chan *api.CollectionConfig)
-	if s.retainedCfg != nil {
-		if err := stream.Send(s.retainedCfg); err != nil {
+	for k, v := range s.retainedCfg {
+		logrus.Debugf("sending config for service: %v", k)
+		if err := stream.Send(v); err != nil {
 			logrus.Error("stream send config error: ", err)
 		}
 	}
@@ -51,7 +52,10 @@ func (s *server) ListenConfig(agentInfo *api.AgentInfo, stream api.AgentPushServ
 }
 
 func (s *server) GetConfig(ctx context.Context, agentInfo *api.AgentInfo) (*api.CollectionConfig, error) {
-	return s.retainedCfg, nil
+	if s.retainedCfg[agentInfo.Service] == nil {
+		return nil, errors.New("service config not found")
+	}
+	return s.retainedCfg[agentInfo.Service], nil
 }
 
 func (s *server) SendNotification(stream api.AgentPushService_SendNotificationServer) error {
@@ -79,7 +83,7 @@ func (s *server) SendNotification(stream api.AgentPushService_SendNotificationSe
 func (s *server) update(cfg *api.CollectionConfig) {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
-	s.retainedCfg = cfg
+	s.retainedCfg[cfg.Service] = cfg
 	s.agents.Range(func(_, v interface{}) bool {
 		ch := v.(chan *api.CollectionConfig)
 		ch <- cfg
@@ -88,10 +92,9 @@ func (s *server) update(cfg *api.CollectionConfig) {
 }
 
 type PushModel struct {
-	port        string
-	quit        chan struct{}
-	retainedCfg *api.CollectionConfig
-	svr         *server
+	port string
+	quit chan struct{}
+	svr  *server
 }
 
 func newPushModel(port string) *PushModel {
@@ -99,7 +102,8 @@ func newPushModel(port string) *PushModel {
 		port: port,
 		quit: make(chan struct{}),
 		svr: &server{
-			notyCh: make(chan *api.CollectionEvent),
+			notyCh:      make(chan *api.CollectionEvent),
+			retainedCfg: make(map[string]*api.CollectionConfig),
 		},
 	}
 }
@@ -129,6 +133,5 @@ func (p PushModel) RecvNotification() <-chan *api.CollectionEvent {
 }
 
 func (p PushModel) SendConfig(cfg *api.CollectionConfig) {
-	p.retainedCfg = cfg
 	p.svr.update(cfg)
 }

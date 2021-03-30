@@ -28,6 +28,8 @@ services:
         - mongo
         - minio
         - cloud
+      environment:
+        DRAIS_AGENT_SVC: zayn
       command: /app/agent 1
   fr:
       image: "fr"

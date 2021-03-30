@@ -3,6 +3,8 @@ package transport
 import (
 	"context"
 	"io"
+	"os"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/zaynjarvis/fyp/dc/api"
@@ -56,6 +58,17 @@ func (p *PushModel) Start() {
 				return
 			} else if err != nil {
 				logrus.Error("receive error on stream receive, err: ", err)
+				return
+			}
+			// should filter from cloud, need optimization
+			svc := os.Getenv("DRAIS_AGENT_SVC")
+			if svc == "" {
+				logrus.Debugf("drop config: not specified required servicev, received svr target: %v", config.Service)
+				continue
+			}
+			if strings.ToLower(svc) != strings.ToLower(config.Service) {
+				logrus.Debugf("drop config: required service: %v, received svc target %v", svc, config.Service)
+				continue
 			}
 			p.configCh <- config
 		}
