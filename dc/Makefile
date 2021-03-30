@@ -35,28 +35,29 @@ dweb:
 	node webserver/index.js
 
 cfge:
-	curl --header "Content-Type: application/json" \
-  --request POST \
-  --data '{"service":"abc","version":"123", "object_storage_path": "minio:9000", "document_storage_path": "mongo:27017",  "rules": [{"field":"nose_tip", "op": 1, "operand":"", "sample_rate": 1}]}' \
-  http://localhost:8900
-
+	curl --header "Content-Type: application/json" --request POST \
+		 --data '{"service":"abc","version":"123", \
+		 "object_storage_path": "minio:9000", "document_storage_path": "mongo:27017", \
+		 "rules": [{"field":"nose_tip", "op": 1, "operand":"", "sample_rate": 1}]}' \
+		 http://localhost:8900
 
 cfgne:
-	curl --header "Content-Type: application/json" \
-  --request POST \
-  --data '{"service":"abc","version":"123", "object_storage_path": "minio:9000", "document_storage_path": "mongo:27017",  "rules": [{"field":"nose_tip", "op": 2, "operand":"", "sample_rate": 1}]}' \
-  http://localhost:8900
-
+	curl --header "Content-Type: application/json" --request POST \
+		 --data '{"service":"abc","version":"123", \
+		 "object_storage_path": "minio:9000", "document_storage_path": "mongo:27017", \
+		 "rules": [{"field":"nose_tip", "op": 2, "operand":"", "sample_rate": 1}]}' \
+		 http://localhost:8900
 
 cfglt:
-	curl --header "Content-Type: application/json" \
-  --request POST \
-  --data '{"service":"abc","version":"123", "object_storage_path": "minio:9000", "document_storage_path": "mongo:27017",  "rules": [{"field":"off_center", "op": 5, "operand":"0.3", "sample_rate": 1}]}' \
-  http://localhost:8900
+	curl --header "Content-Type: application/json" --request POST \
+		 --data '{"service":"abc","version":"123", \
+		 "object_storage_path": "minio:9000", "document_storage_path": "mongo:27017", \
+		 "rules": [{"field":"off_center", "op": 5, "operand":"0.3", "sample_rate": 1}]}' \
+		 http://localhost:8900
 
 cfggt:
-	curl --header "Content-Type: application/json" \
-  --request POST \
-  --data '{"service":"abc","version":"123", "object_storage_path": "minio:9000", "document_storage_path": "mongo:27017",  "rules": [{"field":"off_center", "op": 7, "operand":"0.3", "sample_rate": 1}]}' \
-  http://localhost:8900
-
+	curl --header "Content-Type: application/json" --request POST \
+		 --data '{"service":"abc","version":"123", \
+		 "object_storage_path": "minio:9000", "document_storage_path": "mongo:27017", \
+		 "rules": [{"field":"off_center", "op": 7, "operand":"0.3", "sample_rate": 1}]}' \
+		 http://localhost:8900

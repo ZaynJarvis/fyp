@@ -40,7 +40,8 @@ const App = () => {
   const [res, setRes] = React.useState([]);
 
   const capture = React.useCallback(
-    () => {
+    (e) => {
+      if (e.key !== 'e') { return }
       const ImageURL = webcamRef.current.getScreenshot();
 
       const bodyFormData = new FormData();
@@ -100,7 +101,7 @@ const Pic = ({ key, src, data }) => {
   return (
     <div key={key} >
       <img src={src} alt="img"
-        style={ Object.keys(data).length === 0 ?
+        style={Object.keys(data).length === 0 ?
           { background: '#d337' } :
           { background: '#9d67' }}
         onClick={() => {

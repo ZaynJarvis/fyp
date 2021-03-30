@@ -2,8 +2,6 @@ version: "3.9"
 services:
   mongo:
     image: "mongo"
-    ports:
-      - "27017:27017"
     volumes:
       - ./data/mongo:/data/db
     environment:
@@ -21,7 +19,6 @@ services:
   cloud:
       image: "cloud"
       ports:
-        - "7890:7890" # agent conn
         - "8900:8900" # rest api
   agent:
       image: "agent"
@@ -46,7 +43,7 @@ services:
         - "8888:80"
       depends_on:
         - fr
-  webserver:
+  mongo-svr:
       image: "websvr"
       ports:
         - "3000:3000"
@@ -55,11 +52,10 @@ services:
       links:
         - mongo
       restart: always
-#  webui:
-#      image: "webui"
-#      ports:
-#        - "8080:8080"
-#      depends_on:
-#        - minio
-#        - webserver
-
+  # webui:
+  #    image: "webui"
+  #    ports:
+  #      - "8080:8080"
+  #    depends_on:
+  #      - minio
+  #      - webserver

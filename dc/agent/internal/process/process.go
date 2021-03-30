@@ -138,7 +138,7 @@ func (p *Processor) updateCfg() {
 		// should add rate r
 		p.mu.Lock()
 		p.cfg = cfg
-		logrus.Debug("received config: ", cfg)
+		logrus.Debugf("received config: %s", cfg.String())
 		p.st.UpdateConfig(storage.Config{
 			ObjStoreAddr:   cfg.ObjectStoragePath,
 			DocStorageAddr: cfg.DocumentStoragePath,
