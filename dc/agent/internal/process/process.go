@@ -96,10 +96,15 @@ Loop:
 				break Loop
 			}
 		case api.Rule_lt:
-			f := res[rule.Field].(float64)
+			f, ok := res[rule.Field].(float64)
+			if !ok {
+				logrus.Errorf("field %v cannot parse to float64", rule.Field)
+				continue
+			}
 			operand, err := strconv.ParseFloat(rule.Operand, 64)
 			if err != nil {
 				logrus.Error(err)
+				continue
 			}
 			if f < operand && rand.Float64() < rule.SampleRate {
 				collectedRule = rule.String()
@@ -107,7 +112,11 @@ Loop:
 				break Loop
 			}
 		case api.Rule_gt:
-			f := res[rule.Field].(float64)
+			f, ok := res[rule.Field].(float64)
+			if !ok {
+				logrus.Errorf("field %v cannot parse to float64", rule.Field)
+				continue
+			}
 			operand, err := strconv.ParseFloat(rule.Operand, 64)
 			if err != nil {
 				logrus.Error(err)
