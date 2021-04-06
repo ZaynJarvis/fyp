@@ -3,7 +3,6 @@ package transport
 import (
 	"context"
 	"io"
-	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -61,13 +60,12 @@ func (p *PushModel) Start() {
 				return
 			}
 			// should filter from cloud, need optimization
-			svc := os.Getenv("DRAIS_AGENT_SVC")
-			if svc == "" {
+			if p.info.Service == "" {
 				logrus.Debugf("drop config: not specified required servicev, received svr target: %v", config.Service)
 				continue
 			}
-			if strings.ToLower(svc) != strings.ToLower(config.Service) {
-				logrus.Debugf("drop config: required service: %v, received svc target %v", svc, config.Service)
+			if strings.ToLower(p.info.Service) != strings.ToLower(config.Service) {
+				logrus.Debugf("drop config: required service: %v, received svc target %v", p.info.Service, config.Service)
 				continue
 			}
 			p.configCh <- config

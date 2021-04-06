@@ -2,7 +2,9 @@ package process
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
+	"os"
 	"strconv"
 	"sync"
 
@@ -50,6 +52,7 @@ func (p *Processor) execute(img *api.ImageReport) {
 		logrus.Error("invalid ID")
 		return
 	}
+	img.Id = fmt.Sprintf("%s-%s-%s", os.Getenv("DRAIS_AGENT_SVC"), os.Getenv("DRAIS_AGENT_ID"), img.Id)
 	var res map[string]interface{}
 	if err := json.Unmarshal(img.GetResult(), &res); err != nil {
 		logrus.Error("unmarshal err: ", err)

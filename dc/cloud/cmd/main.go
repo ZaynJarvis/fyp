@@ -19,7 +19,7 @@ func main() {
 			log.Printf("received %#v", e.Message)
 		}
 	}()
-	cfgCh := server.ListenConfig(":8900")
+	cfgCh := server.ListenConfig(":8900", t.Services)
 	for cfg := range cfgCh {
 		logrus.Info("received a config and sent to agents")
 		t.SendConfig(cfg)

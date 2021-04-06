@@ -18,6 +18,7 @@ type server struct {
 	mtx sync.Mutex
 	api.UnimplementedAgentPushServiceServer
 	retainedCfg map[string]*api.CollectionConfig
+	svcs        map[string]struct{}
 	notyCh      chan *api.CollectionEvent
 	agents      sync.Map // map[string]chan api.CollectionConfig
 }
@@ -27,6 +28,8 @@ func (s *server) ListenConfig(agentInfo *api.AgentInfo, stream api.AgentPushServ
 	if loaded {
 		return errors.New("agent with id " + agentInfo.Id + " already exists")
 	}
+	logrus.Infof("received connection from %s", agentInfo)
+	s.svcs[agentInfo.Service] = struct{}{}
 	cfgCh := stored.(chan *api.CollectionConfig)
 	for k, v := range s.retainedCfg {
 		logrus.Debugf("sending config for service: %v", k)
@@ -104,6 +107,7 @@ func newPushModel(port string) *PushModel {
 		svr: &server{
 			notyCh:      make(chan *api.CollectionEvent),
 			retainedCfg: make(map[string]*api.CollectionConfig),
+			svcs:        make(map[string]struct{}),
 		},
 	}
 }
@@ -126,6 +130,14 @@ func (p PushModel) Start() {
 
 func (p PushModel) Stop() {
 	close(p.quit)
+}
+
+func (p PushModel) Services() []string {
+	svcs := make([]string, 0, len(p.svr.svcs))
+	for k := range p.svr.svcs {
+		svcs = append(svcs, k)
+	}
+	return svcs
 }
 
 func (p PushModel) RecvNotification() <-chan *api.CollectionEvent {

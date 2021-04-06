@@ -110,6 +110,103 @@
 
 
 /*--------------------------
+    Config
+----------------------------*/
+.modal-config {
+    @media (max-width: @screen-xs-max) {
+        text-align: center;
+
+        .modal-dialog {
+            max-width: 1000px;
+            width: 90%;
+            margin: 20px auto 0;
+        }
+    }
+}
+
+.mc-inner {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 350px;
+    position: relative;
+}
+
+.mc-list {
+    width: 30%;
+    height: 100%;
+    background-color: #022631;
+    padding-top: 3rem;
+    overflow: scroll;
+}
+
+.mc-card {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    width: 80%;
+    border: lightgreen solid 1px;
+    color: lightgreen;
+    border-radius: 5px;
+    margin: 1rem auto;
+    padding: 1.3rem 2rem;
+    font-size: 2rem;
+    & > div {
+        position: absolute;
+        top: 50%;
+        right: 2rem;
+        transform: translateY(-50%);
+        display: inline-block;
+        height: 1rem;
+        width: 1rem;
+        border-radius: 1rem;
+        border: lightgreen solid 1px;
+        text-align: right;
+        transition: 0.2s;
+    }
+}
+
+.mc-form {
+    height: 100%;
+    width: 70%;
+    padding: 4rem 2rem;
+    input, select {
+        color: whitesmoke;
+    }
+    span {
+        margin-left: 2rem;
+        color: yellowgreen;
+    }
+
+    form {
+        & > * {
+            margin-bottom: 2rem;
+        }
+        button {
+            background-color: transparent;
+            border: whitesmoke solid 1px;
+            color: whitesmoke;
+        }
+    }
+
+    .mc-cover {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    & > p {
+        margin: 2rem;
+        font-size: 2rem;
+        color: silver;
+    }
+}
+
+//--------------------------
+
+/*--------------------------
     About
 ----------------------------*/
 .modal-about {

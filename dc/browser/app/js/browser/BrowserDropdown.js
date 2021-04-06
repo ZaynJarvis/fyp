@@ -21,15 +21,26 @@ import * as browserActions from "./actions"
 import web from "../web"
 import history from "../history"
 import AboutModal from "./AboutModal"
-import ChangePasswordModal from "./ChangePasswordModal"
+import ConfigModal from "./ConfigModal"
 
 export class BrowserDropdown extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
       showAboutModal: false,
-      showChangePasswordModal: false
+      showConfigModal: false,
     }
+  }
+  showConfig(e) {
+    e.preventDefault()
+    this.setState({
+      showConfigModal: true
+    })
+  }
+  hideConfig() {
+    this.setState({
+      showConfigModal: false
+    })
   }
   showAbout(e) {
     e.preventDefault()
@@ -40,17 +51,6 @@ export class BrowserDropdown extends React.Component {
   hideAbout() {
     this.setState({
       showAboutModal: false
-    })
-  }
-  showChangePassword(e) {
-    e.preventDefault()
-    this.setState({
-      showChangePasswordModal: true
-    })
-  }
-  hideChangePassword() {
-    this.setState({
-      showChangePasswordModal: false
     })
   }
   componentDidMount() {
@@ -72,13 +72,12 @@ export class BrowserDropdown extends React.Component {
           </Dropdown.Toggle>
           <Dropdown.Menu className="dropdown-menu-right">
             <li>
-              <a href="" onClick={this.showChangePassword.bind(this)}>
-                Change Password <i className="fas fa-cog" />
+              <a href="" onClick={this.showConfig.bind(this)}>
+                Service Config <i className="fas fa-cog" />
               </a>
-              {this.state.showChangePasswordModal && (
-                <ChangePasswordModal
-                  serverInfo={serverInfo}
-                  hideChangePassword={this.hideChangePassword.bind(this)}
+              {this.state.showConfigModal && (
+                <ConfigModal
+                  hideConfig={this.hideConfig.bind(this)}
                 />
               )}
             </li>

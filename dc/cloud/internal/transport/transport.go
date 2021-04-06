@@ -7,6 +7,7 @@ type CollectionService interface {
 	Stop()
 	RecvNotification() <-chan *api.CollectionEvent
 	SendConfig(*api.CollectionConfig)
+	Services() []string
 }
 
 func New(port string, push bool) CollectionService {

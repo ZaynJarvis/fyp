@@ -20,17 +20,29 @@ services:
       image: "cloud"
       ports:
         - "8900:8900" # rest api
+#        - "7890:7890" # rest api
   agent:
       image: "agent"
-      ports:
-        - "7000:7000"
+      #ports:
+          #- "7000:7000"
       depends_on:
         - mongo
         - minio
         - cloud
       environment:
-        DRAIS_AGENT_SVC: zayn
-      command: /app/agent 1
+        DRAIS_AGENT_ID: zayn
+        DRAIS_AGENT_SVC: face
+      command: /app/agent
+  agent-cat:
+      image: "agent"
+      depends_on:
+        - mongo
+        - minio
+        - cloud
+      environment:
+        DRAIS_AGENT_ID: jarvis
+        DRAIS_AGENT_SVC: cat
+      command: /app/agent
   fr:
       image: "fr"
       ports:
