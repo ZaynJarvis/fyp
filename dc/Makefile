@@ -9,7 +9,7 @@ minio:
 mongo:
 	docker run -p 27017:27017 mongo
 
-build: buildc builda builds buildd
+build: buildc builda builds buildf
 
 buildc:
 	docker build -f Dockerfile.cloud -t cloud .
@@ -22,6 +22,9 @@ builds:
 
 buildd:
 	docker build -t demo ./demo
+
+buildf:
+	docker build -t fr ./face_recognition
 
 buildui:
 	docker build -t webui ./browser
