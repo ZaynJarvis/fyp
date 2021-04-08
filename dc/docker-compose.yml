@@ -17,55 +17,67 @@ services:
         MINIO_SECRET_KEY: 12345678
     command: server /data
   cloud:
-      image: "cloud"
-      ports:
-        - "8900:8900" # rest api
+    image: "cloud"
+    ports:
+      - "8900:8900" # rest api
 #        - "7890:7890" # rest api
   agent:
-      image: "agent"
-      #ports:
-          #- "7000:7000"
-      depends_on:
-        - mongo
-        - minio
-        - cloud
-      environment:
-        DRAIS_AGENT_ID: zayn
-        DRAIS_AGENT_SVC: face
-      command: /app/agent
-  agent-cat:
-      image: "agent"
-      depends_on:
-        - mongo
-        - minio
-        - cloud
-      environment:
-        DRAIS_AGENT_ID: jarvis
-        DRAIS_AGENT_SVC: cat
-      command: /app/agent
+    image: "agent"
+    #ports:
+        #- "7000:7000"
+    depends_on:
+      - mongo
+      - minio
+      - cloud
+    environment:
+      DRAIS_AGENT_ID: zayn
+      DRAIS_AGENT_SVC: face
+    command: /app/agent
   fr:
-      image: "fr"
-      ports:
-        - "8000:8000"
-      volumes:
-        - ./demo/backend:/root/face_recognition/backend
-      depends_on:
-        - agent
+    image: "fr"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./demo/backend:/root/face_recognition/backend
+    depends_on:
+      - agent
   demo:
-      image: "demo"
-      ports:
-        - "8888:80"
-      depends_on:
-        - fr
+    image: "demo"
+    ports:
+      - "8888:80"
+    depends_on:
+      - fr
   mongo-svr:
-      image: "websvr"
-      ports:
-        - "3000:3000"
-      depends_on:
-        - mongo
-      links:
-        - mongo
-      restart: always
+    image: "websvr"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+    links:
+      - mongo
+    restart: always
+  agent-cat:
+    image: "agent"
+    depends_on:
+      - mongo
+      - minio
+      - cloud
+    environment:
+      DRAIS_AGENT_ID: jarvis
+      DRAIS_AGENT_SVC: cat
+    command: /app/agent
+  demo-cat:
+    image: "demo-cat"
+    depends_on:
+      - agent-cat
+    ports:
+      - "9090:9090"
+  cat-ui:
+    image: "cat-ui"
+    ports:
+      - "9999:80"
+    depends_on:
+      - demo-cat
   # webui:
   #    image: "webui"
   #    ports:

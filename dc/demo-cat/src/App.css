@@ -1,0 +1,42 @@
+.App {
+  background-color: pink;
+  height: 100vh;
+  width: 100vw;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem;
+}
+
+span {
+  font-size: 3rem;
+  color: rgb(153, 40, 69);
+  display: inline;
+}
+
+form {
+  position: relative;
+}
+img {
+  height: 50vh;
+}
+
+input {
+  font-size: 3rem;
+  margin: 1rem;
+  padding: 1rem 1rem;
+  border: rgb(226, 163, 173) solid 2px;
+  color: rgb(153, 40, 69);
+  border-radius: 10px;
+  background: transparent;
+  display: inline;
+  outline: none;
+}
+
+input[type='submit'] {
+  position: absolute;
+  right: 0;
+  background: rgb(226, 163, 173);
+}
+
