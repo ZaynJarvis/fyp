@@ -61,7 +61,6 @@ func (c *CollectionSDK) Connect(ctx context.Context) error {
 			return
 		}
 		for img := range c.imgCh {
-			logrus.Info("here")
 			if err := stream.Send(img); err != nil {
 				logrus.Error("stream send image has error: ", err)
 			}
