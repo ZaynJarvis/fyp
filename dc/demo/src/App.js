@@ -39,8 +39,7 @@ const App = () => {
   const webcamRef = React.useRef(null);
   const [res, setRes] = React.useState([]);
 
-  const capture = React.useCallback(
-    (e) => {
+  const capture = React.useCallback((e) => {
       if (e.key !== 'e') { return }
       const ImageURL = webcamRef.current.getScreenshot();
 
@@ -82,7 +81,7 @@ const App = () => {
           videoConstraints={videoConstraints}
           mirrored={true}
         />
-        <button className='button' onClick={capture}><Camera style={{
+        <button className='button' onClick={() => capture({key : 'e'})}><Camera style={{
           height: '100%',
           width: '100%',
           fill: '#666',

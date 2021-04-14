@@ -105,6 +105,23 @@ const RuleForm = ({ svc }) => {
       });
   }, [svc])
 
+  let request = (body) => {
+    console.log('body: ' + JSON.stringify(body))
+    fetch(`http://localhost:8900/services/${body.service}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+      .then(response => response.json())
+      .then(() => {
+        setStatus(1)
+      })
+      .catch((error) => {
+        setStatus(0)
+        alert('Error: ' + error)
+      });
+  }
+
   const rule = useFormik({
     initialValues: {
       field: '',
@@ -112,27 +129,30 @@ const RuleForm = ({ svc }) => {
       operand: '',
       sample_rate: 1,
     },
+    onReset: rule => {
+      rule.operand = ''
+      rule.op = ''
+      rule.field = ''
+      request({ ...obj, rules: [] })
+    },
     onSubmit: rule => {
-      if (rule.op == 'exist' || rule.op == 'not_exist') {
+      if (rule.field === '') {
+        alert('Error: field should not be null')
+        return
+      } else if (rule.op === '') {
+        alert('Error: operator should not be null')
+        return
+      } else if (rule.op === 'exist' || rule.op === 'not_exist') {
         rule.operand = ''
+      } else if (rule.operand === '') {
+        alert('Error: operand should not be null')
+        return
       }
-      fetch(`http://localhost:8900/services/${svc}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...obj, rules: [rule] }),
-      })
-        .then(response => response.json())
-        .then(() => {
-          setStatus(1)
-        })
-        .catch((error) => {
-          setStatus(0)
-          alert('Error: ' + error)
-        });
+      request({ ...obj, rules: [rule] })
     }
   })
 
-  return (<form onSubmit={rule.handleSubmit}>
+  return (<form onSubmit={rule.handleSubmit} onReset={rule.handleReset}>
     <FormGroup controlId='field'>
       <ControlLabel>Form Field</ControlLabel>
       <FormControl help="field..."
@@ -162,6 +182,7 @@ const RuleForm = ({ svc }) => {
         />
       </FormGroup>
     }
+    <Button type="reset">Reset</Button>{' '}
     <Button type="submit">Configure</Button>
     <span>{status === 1 ? 'Success!' : ''}</span>
   </form>);

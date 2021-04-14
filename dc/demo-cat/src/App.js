@@ -12,7 +12,7 @@ function App() {
   const pics = [cat1, cat2, cat3, cat4, cat5]
 
   function selectPic() {
-    setPic(Math.floor(Math.random() * 5));
+    setPic(i => (i+1)%5);
   }
 
   return (
