@@ -77,8 +77,7 @@ const RuleForm = ({ svc }) => {
   React.useEffect(() => {
     setStatus(0)
     fetch(`http://localhost:8900/services/${svc}`, { method: 'GET' })
-      .then(
-        function (response) {
+      .then(response => {
           if (response.status !== 200) {
             console.log('Looks like there was a problem. Status Code: ' +
               response.status);
@@ -100,7 +99,7 @@ const RuleForm = ({ svc }) => {
           });
         }
       )
-      .catch(function (err) {
+      .catch(err => {
         console.log('Fetch Error :-S', err);
       });
   }, [svc])
@@ -133,16 +132,19 @@ const RuleForm = ({ svc }) => {
       rule.operand = ''
       rule.op = ''
       rule.field = ''
-      request({ ...obj, rules: [] })
     },
     onSubmit: rule => {
-      if (rule.field === '') {
+      if (rule.field === '' && rule.op === '' && rule.operand === '') {
+        request({ ...obj, rules: [] })
+        return
+      }
+      else if (rule.field === '') {
         alert('Error: field should not be null')
         return
       } else if (rule.op === '') {
         alert('Error: operator should not be null')
         return
-      } else if (rule.op === 'exist' || rule.op === 'not_exist') {
+      } else if (rule.op !== 'lt' && rule.op !== 'gt') {
         rule.operand = ''
       } else if (rule.operand === '') {
         alert('Error: operand should not be null')
